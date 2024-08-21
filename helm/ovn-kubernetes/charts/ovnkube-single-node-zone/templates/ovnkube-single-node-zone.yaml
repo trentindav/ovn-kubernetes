@@ -471,7 +471,7 @@ spec:
         - name: OVN_DAEMONSET_VERSION
           value: "1.0.0"
         - name: OVN_LOGLEVEL_CONTROLLER
-          value: {{ default "-vconsole:info" .Values.ovnControllerLogLevel | quote }}
+          value: {{ default "-vconsole:debug" .Values.ovnControllerLogLevel | quote }}
         - name: K8S_APISERVER
           valueFrom:
             configMapKeyRef:

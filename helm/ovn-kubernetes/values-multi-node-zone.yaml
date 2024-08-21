@@ -151,6 +151,13 @@ global:
     tag: master
     # -- Image pull policy
     pullPolicy: IfNotPresent
+  dpuImage:
+    # -- Image repository for ovn-kubernetes components
+    repository: ghcr.io/ovn-org/ovn-kubernetes/ovn-kube-ubuntu
+    # -- Specify image tag to run
+    tag: master
+    # -- Image pull policy
+    pullPolicy: IfNotPresent
 
 ovnkube-identity:
     # -- number of ovnube-identity pods, co-located with kube-apiserver process, so need to be the same number of control plane nodes

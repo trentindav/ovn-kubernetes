@@ -598,6 +598,13 @@ func createNodeManagementPorts(node *kapi.Node, nodeLister listers.NodeLister, n
 		if err != nil {
 			return nil, nil, err
 		}
+		mgmtPortMac, err := util.GenerateRandMAC()
+		if err != nil {
+			return nil, nil, err
+		}
+		if err = util.UpdateNodeManagementPortMACAddressesWithRetry(node, nodeLister, kubeInterface, mgmtPortMac, types.DefaultNetworkName); err != nil {
+			return nil, nil, err
+		}
 	}
 	ports := NewManagementPorts(node.Name, subnets, netdevName, rep)
 
@@ -705,13 +712,17 @@ func (nc *DefaultNodeNetworkController) Start(ctx context.Context) error {
 		klog.Errorf("Setting klog \"loglevel\" to 5 failed, err: %v", err)
 	}
 
-	if err = configureGlobalForwarding(); err != nil {
-		return err
+	if config.OvnKubeNode.Mode != types.NodeModeDPU {
+		if err = configureGlobalForwarding(); err != nil {
+			return err
+		}
 	}
 
-	// Bootstrap flows in OVS if just normal flow is present
-	if err := bootstrapOVSFlows(nc.name); err != nil {
-		return fmt.Errorf("failed to bootstrap OVS flows: %w", err)
+	if config.OvnKubeNode.Mode != types.NodeModeDPUHost {
+		// Bootstrap flows in OVS if just normal flow is present
+                if err := bootstrapOVSFlows(nc.name); err != nil {
+			return fmt.Errorf("failed to bootstrap OVS flows: %w", err)
+		}
 	}
 
 	if node, err = nc.Kube.GetNode(nc.name); err != nil {
@@ -843,6 +854,13 @@ func (nc *DefaultNodeNetworkController) Start(ctx context.Context) error {
 
 	if err := util.SetNodeZone(nodeAnnotator, sbZone); err != nil {
 		return fmt.Errorf("failed to set node zone annotation for node %s: %w", nc.name, err)
+	}
+
+	if config.OvnKubeNode.Mode != types.NodeModeDPUHost {
+		klog.Infof("Setting EncapIp %s in node annotation", config.Default.EncapIP)
+		if err = util.SetNodeEncapIp(nodeAnnotator, config.Default.EncapIP); err != nil {
+			return err
+		}
 	}
 
 	if err := nodeAnnotator.Run(); err != nil {
@@ -1085,11 +1103,11 @@ func (nc *DefaultNodeNetworkController) Start(ctx context.Context) error {
 		if err := cniServer.Start(cni.ServerRunDir); err != nil {
 			return err
 		}
+	}
 
-		// Write CNI config file if it doesn't already exist
-		if err := config.WriteCNIConfig(); err != nil {
-			return err
-		}
+	// Write CNI config file if it doesn't already exist
+	if err := config.WriteCNIConfig(); err != nil {
+		return err
 	}
 
 	if config.OVNKubernetesFeature.EnableEgressService {

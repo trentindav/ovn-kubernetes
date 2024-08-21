@@ -177,7 +177,13 @@ ovnkube_loglevel=${OVNKUBE_LOGLEVEL:-4}
 # two gateway modes that we support using `images/daemonset.sh` tool
 ovn_gateway_mode=${OVN_GATEWAY_MODE:-"shared"}
 ovn_gateway_opts=${OVN_GATEWAY_OPTS:-""}
+if [ -f /etc/init-output/ovn_gateway_opts ]; then
+  ovn_gateway_opts="${ovn_gateway_opts} $(cat /etc/init-output/ovn_gateway_opts)"
+fi
 ovn_gateway_router_subnet=${OVN_GATEWAY_ROUTER_SUBNET:-""}
+if [ -f /etc/init-output/ovn_gateway_router_subnet ]; then
+  ovn_gateway_router_subnet="$(cat /etc/init-output/ovn_gateway_router_subnet)"
+fi
 
 net_cidr=${OVN_NET_CIDR:-10.128.0.0/14/23}
 svc_cidr=${OVN_SVC_CIDR:-172.30.0.0/16}
@@ -310,6 +316,15 @@ ovn_northd_backoff_interval=${OVN_NORTHD_BACKOFF_INTERVAL:-"300"}
 ovn_enable_svc_template_support=${OVN_ENABLE_SVC_TEMPLATE_SUPPORT:-true}
 # OVN_ENABLE_DNSNAMERESOLVER - enable dns name resolver support
 ovn_enable_dnsnameresolver=${OVN_ENABLE_DNSNAMERESOLVER:-false}
+# OVN_NOHOSTSUBNET_LABEL - node label indicating nodes managing their own network
+ovn_nohostsubnet_label=${OVN_NOHOSTSUBNET_LABEL:-""}
+
+# TODO check if needed
+if [[ ${K8S_NODE} == "" ]]; then
+  echo "Couldn't get the required Host K8s Nodename. Exiting..."
+else
+  K8S_NODE=$(ovs-vsctl --if-exists get Open_vSwitch . external_ids:host-k8s-nodename | tr -d '\"')
+fi
 
 # Determine the ovn rundir.
 if [[ -f /usr/bin/ovn-appctl ]]; then
@@ -1259,6 +1274,11 @@ ovn-master() {
   fi
   echo "ovn_enable_svc_template_support_flag=${ovn_enable_svc_template_support_flag}"
 
+  nohostsubnet_label_option=
+  if [[ ${ovn_nohostsubnet_label} != "" ]]; then
+	  nohostsubnet_label_option="--no-hostsubnet-nodes=${ovn_nohostsubnet_label}"
+  fi
+
   init_node_flags=
   if [[ ${ovnkube_compact_mode_enable} == "true" ]]; then
     init_node_flags="--init-node ${K8S_NODE} --nodeport"
@@ -1310,6 +1330,7 @@ ovn-master() {
     ${ovn_v6_masquerade_subnet_opt} \
     ${persistent_ips_enabled_flag} \
     ${ovn_enable_dnsnameresolver_flag} \
+    ${nohostsubnet_label_option} \
     --cluster-subnets ${net_cidr} --k8s-service-cidr=${svc_cidr} \
     --gateway-mode=${ovn_gateway_mode} ${ovn_gateway_opts} \
     --host-network-namespace ${ovn_host_network_namespace} \
@@ -1406,6 +1427,20 @@ ovnkube-controller() {
       ovn_v6_masquerade_subnet_opt="--gateway-v6-masquerade-subnet=${ovn_v6_masquerade_subnet}"
   fi
   echo "ovn_v6_masquerade_subnet_opt=${ovn_v6_masquerade_subnet_opt}"
+
+  if [[ ${ovnkube_node_mode} == "dpu" ]]; then
+    # in the case of dpu mode we want the host K8s Node Name and not the DPU K8s Node Name
+    K8S_NODE=$(ovs-vsctl --if-exists get Open_vSwitch . external_ids:host-k8s-nodename | tr -d '\"')
+    if [[ ${K8S_NODE} == "" ]]; then
+      echo "Couldn't get the required Host K8s Nodename. Exiting..."
+      exit 1
+    fi
+  fi
+
+  nohostsubnet_label_option=
+  if [[ ${ovn_nohostsubnet_label} != "" ]]; then
+          nohostsubnet_label_option="--no-hostsubnet-nodes=${ovn_nohostsubnet_label}"
+  fi
 
   local ovn_master_ssl_opts=""
   [[ "yes" == ${OVN_SSL_ENABLE} ]] && {
@@ -1592,6 +1627,7 @@ ovnkube-controller() {
     ${ovn_v6_join_subnet_opt} \
     ${ovn_v6_masquerade_subnet_opt} \
     ${ovn_enable_dnsnameresolver_flag} \
+    ${nohostsubnet_label_option} \
     --cluster-subnets ${net_cidr} --k8s-service-cidr=${svc_cidr} \
     --gateway-mode=${ovn_gateway_mode} \
     --host-network-namespace ${ovn_host_network_namespace} \
@@ -1960,6 +1996,14 @@ ovnkube-controller-with-node() {
   fi
   echo "ovn_enable_dnsnameresolver_flag=${ovn_enable_dnsnameresolver_flag}"
 
+  if [[ ${ovnkube_node_mode} == "dpu" ]]; then
+    K8S_NODE=$(ovs-vsctl --if-exists get Open_vSwitch . external_ids:host-k8s-nodename | tr -d '\"')
+    if [[ ${K8S_NODE} == "" ]]; then
+      echo "Couldn't get the required Host K8s Nodename. Exiting..."
+      exit 1
+    fi
+  fi
+
   echo "=============== ovnkube-controller-with-node --init-ovnkube-controller-with-node=========="
   /usr/bin/ovnkube --init-ovnkube-controller ${K8S_NODE} --init-node ${K8S_NODE} \
     ${anp_enabled_flag} \
@@ -2066,6 +2110,11 @@ ovn-cluster-manager() {
          egressservice_enabled_flag="--enable-egress-service"
   fi
   echo "egressservice_enabled_flag=${egressservice_enabled_flag}"
+
+  nohostsubnet_label_option=
+  if [[ ${ovn_nohostsubnet_label} != "" ]]; then
+          nohostsubnet_label_option="--no-hostsubnet-nodes=${ovn_nohostsubnet_label}"
+  fi
 
   anp_enabled_flag=
   if [[ ${ovn_admin_network_policy_enable} == "true" ]]; then
@@ -2215,6 +2264,7 @@ ovn-cluster-manager() {
     ${ovn_v4_transit_switch_subnet_opt} \
     ${ovn_v6_transit_switch_subnet_opt} \
     ${ovn_enable_dnsnameresolver_flag} \
+    ${nohostsubnet_label_option} \
     --cluster-subnets ${net_cidr} --k8s-service-cidr=${svc_cidr} \
     --host-network-namespace ${ovn_host_network_namespace} \
     --logfile-maxage=${ovnkube_logfile_maxage} \
@@ -2286,8 +2336,10 @@ ovn-node() {
     wait_for_event ovs_ready
   fi
 
-  echo "=============== ovn-node - (wait for ready_to_start_node)"
-  wait_for_event ready_to_start_node
+  if [[ ${ovnkube_node_mode} != "dpu-host" ]] && [[ ${ovn_enable_interconnect} != "true" ]]; then
+    echo "=============== ovn-node - (wait for ready_to_start_node)"
+    wait_for_event ready_to_start_node
+  fi
 
   echo "ovn_nbdb ${ovn_nbdb}   ovn_sbdb ${ovn_sbdb}  ovn_nbdb_conn ${ovn_nbdb_conn}"
 
@@ -2457,6 +2509,15 @@ ovn-node() {
   fi
   if [[ -n "${ovnkube_node_mgmt_port_dp_resource_name}" ]] ; then
     node_mgmt_port_netdev_flags="$node_mgmt_port_netdev_flags --ovnkube-node-mgmt-port-dp-resource-name ${ovnkube_node_mgmt_port_dp_resource_name}"
+  fi
+
+  if [[ ${ovnkube_node_mode} == "dpu" ]]; then
+    # in the case of dpu mode we want the host K8s Node Name and not the DPU K8s Node Name
+    K8S_NODE=$(ovs-vsctl --if-exists get Open_vSwitch . external_ids:host-k8s-nodename | tr -d '\"')
+    if [[ ${K8S_NODE} == "" ]]; then
+      echo "Couldn't get the required Host K8s Nodename. Exiting..."
+      exit 1
+    fi
   fi
 
   local ovn_node_ssl_opts=""

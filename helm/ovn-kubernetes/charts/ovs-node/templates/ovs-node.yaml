@@ -41,7 +41,7 @@ spec:
       # ovsdb-server and ovs-switchd daemons
       - name: ovs-daemons
         image: {{ include "getImage" . }}
-        imagePullPolicy: {{ default "IfNotPresent" .Values.global.image.pullPolicy }}
+        imagePullPolicy: "IfNotPresent"
         command: ["/root/ovnkube.sh", "ovs-server"]
         livenessProbe:
           exec:

@@ -1,5 +1,5 @@
 # Values for ovn-kubernetes with single-node zone interconnect
-# Requires: ovnkube-single-node-zone, ovnkube-control-plane
+# Requires: ovnkube-node-dpu, ovnkube-node, ovnkube-control-plane
 
 # -- list of dependent subcharts that need to be installed for the given deployment mode, these subcharts haven't been tested yet.
 tags:
@@ -8,9 +8,11 @@ tags:
   ovnkube-db-raft: false
   ovnkube-master: false
   ovnkube-node: false
-  ovnkube-node-dpu: false
-  ovnkube-node-dpu-host: false
+  ovs-node: false
+  ovnkube-node-dpu: true
+  ovnkube-node-dpu-host: true
   ovnkube-zone-controller: false
+  ovnkube-single-node-zone: false
 
 # -- Endpoint of Kubernetes api server
 k8sAPIServer: https://172.25.0.2:6443
@@ -49,7 +51,7 @@ global:
   # -- The v6 subnet for transit switch
   v6TransitSwitchSubnet: "fd97::/64"
   # -- Whether or not enable ovnkube identity webhook
-  enableOvnKubeIdentity: true
+  enableOvnKubeIdentity: false
   # -- Indicate if ovnkube run master and node in one process
   enableCompactMode: false
   # -- Whether or not to enable hybrid overlay functionality
@@ -59,15 +61,15 @@ global:
   # -- Whether or not to use Admin Network Policy CRD feature with ovn-kubernetes
   enableAdminNetworkPolicy: false
   # -- Configure to use EgressIP CRD feature with ovn-kubernetes
-  enableEgressIp: true
+  enableEgressIp: false
   # -- Configure EgressIP node reachability using gRPC on this TCP port
   egressIpHealthCheckPort: 9107
   # -- Configure to use EgressService CRD feature with ovn-kubernetes
-  enableEgressService: true
+  enableEgressService: false
   # -- Configure to use EgressFirewall CRD feature with ovn-kubernetes
-  enableEgressFirewall: true
+  enableEgressFirewall: false
   # -- Configure to use EgressQoS CRD feature with ovn-kubernetes
-  enableEgressQos: true
+  enableEgressQos: false
   # -- Enables multicast support between the pods within the same namespace
   enableMulticast: ""
   # -- Configure to use multiple NetworkAttachmentDefinition CRD feature with ovn-kubernetes
@@ -79,20 +81,20 @@ global:
   # -- Configure to enable interconnecting multiple zones
   enableInterconnect: true
   # -- Configure to use AdminPolicyBasedExternalRoute CRD feature with ovn-kubernetes
-  enableMultiExternalGateway: true
+  enableMultiExternalGateway: false
   # -- Configure to use stateless network policy feature with ovn-kubernetes
-  enableStatelessNetworkPolicy: false
+  enableStatelessNetworkPolicy: true
   # -- Configure to use the IPAMClaims CRD feature with ovn-kubernetes, thus granting persistent IPs across restarts / migration for KubeVirt VMs
-  enablePersistentIPs: true
+  enablePersistentIPs: false
   # -- Configure to use service template feature with ovn-kubernetes
-  enableSvcTemplate: true
+  enableSvcTemplate: false
   # -- Enables metrics related to scaling
   enableMetricsScale: ""
   # -- Enables monitoring OVN-Kubernetes master and OVN configuration duration
   enableConfigDuration: ""
   # -- Indicates if ovn-controller should enable/disable the logical flow in-memory cache when processing Southbound database logical flow changes
   # @default -- true
-  enableLFlowCache: true
+  enableLFlowCache: false
   # -- Maximum number of logical flow cache entries ovn-controller may create when the logical flow cache is enabled
   # @default -- unlimited
   lFlowCacheLimit: ""
@@ -100,7 +102,7 @@ global:
   lFlowCacheLimitKb: ""
   # -- Configure to use the IPAMClaims CRD feature with ovn-kubernetes, thus granting persistent IPs across restarts / migration for KubeVirt VMs
   # @default -- true
-  enablePersistentIPs: true
+  enablePersistentIPs: false
   # -- Configure to use DNSNameResolver feature with ovn-kubernetes
   enableDNSNameResolver: false
   # -- Whether to disable SNAT of egress traffic in namespaces annotated with routing-external-gws
@@ -115,6 +117,7 @@ global:
   # -- The largest number of messages per second that gets logged before drop
   # @default 20
   aclLoggingRateLimit: 20
+    #  ovnGatewayRouter: "10.234.0.0/16"
   # -- If set, then load balancers do not get deleted when all backends are removed
   emptyLbEvents: ""
   # -- Port of north bound ovsdb
@@ -145,6 +148,7 @@ global:
   # -- ovn-controller wait time in ms before clearing OpenFlow rules during start up
   # @default 0
   ofctrlWaitBeforeClear: ""
+  nodeMgmtPortNetdev: "eth4"
   # -- Separate log file for libovsdb client 
   libovsdbClientLogFile: ""
   image:
@@ -154,10 +158,17 @@ global:
     tag: master
     # -- Image pull policy
     pullPolicy: IfNotPresent
+  dpuImage:
+    # -- Image repository for ovn-kubernetes components
+    repository: ghcr.io/ovn-org/ovn-kubernetes/ovn-kube-ubuntu
+    # -- Specify image tag to run
+    tag: master
+    # -- Image pull policy
+    pullPolicy: IfNotPresent
 
 ovnkube-identity:
     # -- number of ovnube-identity pods, co-located with kube-apiserver process, so need to be the same number of control plane nodes
-    replicas: 1
+    replicas: 0
 
 # -- prometheus monitoring related fields
 monitoring:

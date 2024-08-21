@@ -219,7 +219,10 @@ func (c *openflowManager) updateBridgeFlowCache(subnets []*net.IPNet, extraIPs [
 	}
 	dftFlows = append(dftFlows, dftCommonFlows...)
 
-	c.updateFlowCacheEntry("NORMAL", []string{fmt.Sprintf("table=0,priority=0,actions=%s\n", util.NormalAction)})
+	c.updateFlowCacheEntry("NORMAL", []string{
+               fmt.Sprintf("table=0,priority=0,actions=%s\n", util.NormalAction),
+               fmt.Sprintf("table=0,priority=999,udp,tp_dst=67,actions=%s\n", util.NormalAction),
+	})
 	c.updateFlowCacheEntry("DEFAULT", dftFlows)
 
 	// we consume ex gw bridge flows only if that is enabled

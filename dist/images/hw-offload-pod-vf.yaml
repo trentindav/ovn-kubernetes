@@ -1,0 +1,36 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: hw-offload-vf
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: hw-offload-vf
+  strategy:
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 1
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app: hw-offload-vf
+        name: hw-offload-vf
+      annotations:
+        v1.multus-cni.io/default-network: default/ovn-primary
+    spec:
+      nodeSelector:
+        kubernetes.io/arch: amd64
+      containers:
+      - name: hw-offload-vf
+        image: "harbor.mellanox.com/cloud-orchestration-dev/hw-offload-test"
+        imagePullPolicy: "IfNotPresent"
+        command: ['sh', '-c', 'trap : TERM INT; sleep infinity & wait']
+        resources:
+          requests:
+            nvidia.com/bf2: '1'
+          limits:
+            nvidia.com/bf2: '1'
+      restartPolicy: Always
+
