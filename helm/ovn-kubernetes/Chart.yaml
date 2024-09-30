@@ -1,5 +1,5 @@
 apiVersion: v2
-name: ovn-kubernetes
+name: ovn-kubernetes-chart
 description: Helm chart to deploy ovn-kubernetes cni
 type: application
 version: 1.0.0

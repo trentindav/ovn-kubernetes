@@ -64,9 +64,14 @@ spec:
         securityContext:
           # Needs to run as root to ensure that it can access the NVIPAM socket
           runAsUser: 0
-        # Readiness probe is not really nessecary but it helps ensure that the file is written before the real app container
-        # starts.
         readinessProbe:
+          exec:
+            command:
+            - cat
+            - /var/run/readyz
+        # Startup probe is not really nessecary but it helps ensure that the file is written before the real app container
+        # starts.
+        startupProbe:
           exec:
             command:
             - cat
@@ -119,6 +124,12 @@ spec:
         restartPolicy: Always
         # Ensures that DHCP server is up and running. This is for serving IP to the PF on the host.
         readinessProbe:
+          exec:
+            command:
+            - cat
+            - /var/run/readyz
+        # Needed to ensure that the configuration finishes before the rest of the containers start
+        startupProbe:
           exec:
             command:
             - cat

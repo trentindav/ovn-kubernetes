@@ -24,6 +24,8 @@ serviceNetwork: 10.96.0.0/12
 mtu: 1400
 # -- Whether or not call `lookup` Helm function, set it to `true` if you want to run `helm dry-run/template/lint`
 skipCallToK8s: false
+# -- Adds permissions to the service account that is going to be used by the DPU component
+dpuServiceAccountName: ovn-dpu
 
 global:
   # -- The net device to be used for management port, will be renamed to ovn-k8s-mp0 and used to allow host network services and pods to access k8s pod and service networks
@@ -153,18 +155,18 @@ global:
   libovsdbClientLogFile: ""
   image:
     # -- Image repository for ovn-kubernetes components
-    repository: harbor.mellanox.com/cloud-orchestration-dev/dpf/aserdean/ovn-kubernetes
+    repository: ${OVNKUBERNETES_IMAGE}
     # -- Specify image tag to run
-    tag: v0.0.0-hbn-ovn-6
+    tag: ${TAG}
     # -- Image pull policy
-    pullPolicy: Always
+    pullPolicy: IfNotPresent
   dpuImage:
     # -- Image repository for ovn-kubernetes components
-    repository: harbor.mellanox.com/cloud-orchestration-dev/dpf/aserdean/ovn-kubernetes
+    repository: ${OVNKUBERNETES_IMAGE}
     # -- Specify image tag to run
-    tag: v0.0.0-hbn-ovn-6
+    tag: ${TAG}
     # -- Image pull policy
-    pullPolicy: Always
+    pullPolicy: IfNotPresent
 
 # User must specify both of them
 ovnkube-node-dpu-host:

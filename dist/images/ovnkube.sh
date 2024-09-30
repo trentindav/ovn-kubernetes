@@ -319,11 +319,9 @@ ovn_enable_dnsnameresolver=${OVN_ENABLE_DNSNAMERESOLVER:-false}
 # OVN_NOHOSTSUBNET_LABEL - node label indicating nodes managing their own network
 ovn_nohostsubnet_label=${OVN_NOHOSTSUBNET_LABEL:-""}
 
-# TODO check if needed
-if [[ ${K8S_NODE} == "" ]]; then
-  echo "Couldn't get the required Host K8s Nodename. Exiting..."
-else
-  K8S_NODE=$(ovs-vsctl --if-exists get Open_vSwitch . external_ids:host-k8s-nodename | tr -d '\"')
+node_name=$(ovs-vsctl --if-exists get Open_vSwitch . external_ids:host-k8s-nodename | tr -d '\"')
+if [[ ! -z $node_name ]]; then
+  K8S_NODE=$node_name
 fi
 
 # Determine the ovn rundir.

@@ -24,6 +24,9 @@ subjects:
     - kind: ServiceAccount
       name: ovnkube-node
       namespace: ovn-kubernetes
+    - kind: ServiceAccount
+      name: {{ .Values.dpuServiceAccountName }}
+      namespace: ovn-kubernetes
     {{- end }}
 
 
@@ -43,6 +46,9 @@ roleRef:
 subjects:
     - kind: ServiceAccount
       name: ovnkube-node
+      namespace: ovn-kubernetes
+    - kind: ServiceAccount
+      name: {{ .Values.dpuServiceAccountName }}
       namespace: ovn-kubernetes
 
 ---
