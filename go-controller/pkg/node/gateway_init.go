@@ -439,17 +439,23 @@ func (nc *DefaultNodeNetworkController) initGatewayDPUHost(kubeNodeIP net.IP) er
 	// Note: all K8s Node related annotations are handled from DPU.
 	klog.Info("Initializing Shared Gateway Functionality on DPU host")
 	var err error
+	var gwIntf, gatewayIntf string
 
 	// Force gateway interface to be the interface associated with kubeNodeIP
-	gwIntf, err := getInterfaceByIP(kubeNodeIP)
-	if err != nil {
-		return err
-	}
-	config.Gateway.Interface = gwIntf
+	if (config.Gateway.Interface == "") {
+		gwIntf, err = getInterfaceByIP(kubeNodeIP)
+		if err != nil {
+			return err
+		}
+		config.Gateway.Interface = gwIntf
 
-	_, gatewayIntf, err := getGatewayNextHops()
-	if err != nil {
-		return err
+		_, gatewayIntf, err = getGatewayNextHops()
+		if err != nil {
+			return err
+		}
+	} else {
+		gatewayIntf = config.Gateway.Interface
+		gwIntf = gatewayIntf
 	}
 
 	ifAddrs, err := getNetworkInterfaceIPAddresses(gatewayIntf)
