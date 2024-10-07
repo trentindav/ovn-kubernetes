@@ -11,7 +11,7 @@
 all: ubuntu fedora
 
 SLASH = -
-ARCH = $(subst aarch64,arm64,$(subst x86_64,amd64,$(patsubst i%86,386,$(shell uname -m))))
+ARCH = $(subst aarch64,arm64,$(subst x86_64,amd64,$(patsubst i%86,386,$(shell go env GOARCH))))
 IMAGE_ARCH = $(SLASH)$(ARCH)
 DOCKERFILE_ARCH =
 ifeq ($(ARCH),arm64)
