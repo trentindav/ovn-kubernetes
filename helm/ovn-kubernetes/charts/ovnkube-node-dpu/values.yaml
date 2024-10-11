@@ -8,3 +8,5 @@ vtepCIDR: ""
 hostCIDR: ""
 ipamPool: ""
 ipamPoolType: ""
+ipamVTEPIPIndex: nil
+ipamPFIPIndex: nil

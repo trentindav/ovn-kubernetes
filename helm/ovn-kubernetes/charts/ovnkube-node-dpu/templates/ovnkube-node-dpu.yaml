@@ -30,12 +30,14 @@ spec:
             {
               "name": "vtep",
               "poolName": "{{ .Values.ipamPool }}",
-              "poolType": "{{ .Values.ipamPoolType}}"
+              "poolType": "{{ .Values.ipamPoolType}}",
+              "allocateIPWithIndex": {{ .Values.ipamVTEPIPIndex }}
             },
             {
               "name": "pf",
               "poolName": "{{ .Values.ipamPool }}",
-              "poolType": "{{ .Values.ipamPoolType}}"
+              "poolType": "{{ .Values.ipamPoolType}}",
+              "allocateIPWithIndex": {{ .Values.ipamPFIPIndex }}
             }
           ]
     spec:
