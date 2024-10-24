@@ -173,7 +173,9 @@ func (ncm *nodeNetworkControllerManager) Start(ctx context.Context) (err error) 
 	if config.OvnKubeNode.Mode != ovntypes.NodeModeDPUHost {
 		// start health check to ensure there are no stale OVS internal ports
 		go wait.Until(func() {
-			checkForStaleOVSInternalPorts()
+			if config.OvnKubeNode.Mode != ovntypes.NodeModeDPU {
+				checkForStaleOVSInternalPorts()
+			}
 			ncm.checkForStaleOVSRepresentorInterfaces()
 		}, time.Minute, ncm.stopChan)
 	}
