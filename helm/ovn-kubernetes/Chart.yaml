@@ -58,3 +58,7 @@ dependencies:
     version: 1.0.0
     tags:
       - ovs-node
+  - name: ovn-kubernetes-resource-injector
+    version: 1.0.0
+    tags:
+      - ovn-kubernetes-resource-injector

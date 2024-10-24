@@ -3,6 +3,7 @@
 
 # -- list of dependent subcharts that need to be installed for the given deployment mode, these subcharts haven't been tested yet.
 tags:
+  ovn-kubernetes-resource-injector: true
   ovn-ipsec: false
   ovnkube-db: false
   ovnkube-db-raft: false
@@ -176,6 +177,15 @@ ovnkube-node-dpu-host:
 ovnkube-identity:
     # -- number of ovnube-identity pods, co-located with kube-apiserver process, so need to be the same number of control plane nodes
     replicas: 1
+
+ovn-kubernetes-resource-injector:
+  controllerManager:
+    webhook:
+      command:
+      - /ovnkubernetesresourceinjector
+      image:
+        repository: ${OVNKUBERNETES_IMAGE}
+        tag: ${TAG}
 
 # -- prometheus monitoring related fields
 monitoring:
