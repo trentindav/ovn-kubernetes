@@ -25,6 +25,7 @@ spec:
         type: infra
         kubernetes.io/os: "linux"
         ovn-db-pod: "true"
+        ovn.dpu.nvidia.com/skip-injection: ""
       annotations:
         scheduler.alpha.kubernetes.io/critical-pod: ''
     spec:

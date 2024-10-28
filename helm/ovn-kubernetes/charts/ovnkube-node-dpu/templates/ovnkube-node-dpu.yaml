@@ -343,7 +343,7 @@ spec:
           periodSeconds: 60
       # end of container
       {{- if eq (hasKey .Values.global "enableCompactMode" | ternary .Values.global.enableCompactMode false) false }}
-      - name: ovnkube-controller
+      - name: doca-ovnkube-controller
         image: {{ include "getDPUImage" . }}
         imagePullPolicy: {{ default "IfNotPresent" .Values.global.image.pullPolicy }}
         command: ["/root/ovnkube.sh", "ovnkube-controller-with-node"]
@@ -656,7 +656,6 @@ spec:
         # end of container
       nodeSelector:
         kubernetes.io/os: "linux"
-        k8s.ovn.org/dpu: ""
       volumes:
       # CNI provisioner
       - name: ips

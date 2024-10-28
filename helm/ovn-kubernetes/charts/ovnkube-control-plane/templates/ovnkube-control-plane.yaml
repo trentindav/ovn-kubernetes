@@ -30,6 +30,7 @@ spec:
         component: network
         type: infra
         kubernetes.io/os: "linux"
+        ovn.dpu.nvidia.com/skip-injection: ""
     spec:
       {{- if .Values.global.imagePullSecretName }}
       imagePullSecrets:
