@@ -7,7 +7,7 @@ apiVersion: apps/v1
 metadata:
   name: ovnkube-master
   # namespace set up by install
-  namespace: ovn-kubernetes
+  namespace: {{ .Release.Namespace }}
   annotations:
     kubernetes.io/description: |
       This Deployment launches the ovn-kubernetes master networking components.

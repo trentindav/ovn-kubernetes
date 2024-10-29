@@ -70,3 +70,15 @@ The name of the webhook service
 {{- define "ovn-kubernetes-resource-injector.webhook.serviceName" -}}
 {{ include "ovn-kubernetes-resource-injector.fullname" . }}-webhook
 {{- end }}
+
+
+{{/*
+The args to be passed to the webhook
+*/}}
+{{- define "ovn-kubernetes-resource-injector.webhook.args" -}}
+{{- $args := .Values.controllerManager.webhook.args }}
+{{- $args = append $args (printf "--nad-namespace=%s" .Release.Namespace) }}
+{{- $args = append $args (printf "--nad-name=%s" .Values.nadName) }}
+{{- toYaml $args }}
+{{- end }}
+

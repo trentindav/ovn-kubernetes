@@ -27,6 +27,7 @@ mtu: 1400
 skipCallToK8s: false
 # -- Adds permissions to the service account that is going to be used by the DPU component
 dpuServiceAccountName: ovn-dpu
+dpuServiceAccountNamespace: ovn-kubernetes
 
 global:
   # -- The net device to be used for management port, will be renamed to ovn-k8s-mp0 and used to allow host network services and pods to access k8s pod and service networks

@@ -3,14 +3,14 @@ apiVersion: v1
 kind: ServiceAccount
 metadata:
   name: ovnkube-dpucniprovisioner
-  namespace: ovn-kubernetes
+  namespace: {{ .Release.Namespace }}
 automountServiceAccountToken: false
 ---
 apiVersion: v1
 kind: Secret
 metadata:
   name: ovnkube-dpucniprovisioner-token
-  namespace: ovn-kubernetes
+  namespace: {{ .Release.Namespace }}
   annotations:
     kubernetes.io/service-account.name: ovnkube-dpucniprovisioner
 type: kubernetes.io/service-account-token
@@ -31,7 +31,7 @@ metadata:
 subjects:
 - kind: ServiceAccount
   name: ovnkube-dpucniprovisioner
-  namespace: ovn-kubernetes
+  namespace: {{ .Release.Namespace }}
 roleRef:
   kind: ClusterRole
   name: ovnkube-dpucniprovisioner

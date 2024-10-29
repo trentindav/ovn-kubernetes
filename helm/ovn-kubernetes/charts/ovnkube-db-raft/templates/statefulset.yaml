@@ -6,7 +6,7 @@ kind: StatefulSet
 apiVersion: apps/v1
 metadata:
   name: ovnkube-db
-  namespace: ovn-kubernetes
+  namespace: {{ .Release.Namespace }}
   annotations:
     kubernetes.io/description: |
       This statefulset launches the OVN Northbound/Southbound Database raft clusters.

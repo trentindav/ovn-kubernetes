@@ -6,7 +6,7 @@ apiVersion: apps/v1
 metadata:
   name: ovnkube-zone-controller
   # namespace set up by install
-  namespace: ovn-kubernetes
+  namespace: {{ .Release.Namespace }}
   annotations:
     kubernetes.io/description: |
       This DaemonSet launches the ovn-kubernetes networking components for worker nodes.

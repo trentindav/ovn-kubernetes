@@ -32,3 +32,4 @@ controllerManager:
     operator: "Exists"
     effect: NoSchedule
 resourceName: ""
+nadName: dpf-ovn-kubernetes

@@ -20,7 +20,7 @@ spec:
         ovn.dpu.nvidia.com/skip-injection: ""
     spec:
       containers:
-      - args: {{- toYaml .Values.controllerManager.webhook.args | nindent 8 }}
+      - args: {{- include "ovn-kubernetes-resource-injector.webhook.args" . | nindent 8 }}
         command: {{- toYaml .Values.controllerManager.webhook.command | nindent 8 }}
         image: {{ .Values.controllerManager.webhook.image.repository }}:{{ .Values.controllerManager.webhook.image.tag
           | default .Chart.AppVersion }}

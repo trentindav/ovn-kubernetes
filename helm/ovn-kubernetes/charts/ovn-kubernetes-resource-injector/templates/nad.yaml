@@ -2,11 +2,10 @@
 apiVersion: k8s.cni.cncf.io/v1
 kind: NetworkAttachmentDefinition
 metadata:
-  # TODO: Make this configurable in the webhook
-  name: dpf-ovn-kubernetes
-  namespace: ovn-kubernetes
+  name: {{ .Values.nadName }}
+  namespace: {{ .Release.Namespace }}
   annotations:
-    k8s.v1.cni.cncf.io/resourceName: {{ .Values.resourceName }}  
+    k8s.v1.cni.cncf.io/resourceName: {{ .Values.resourceName }} 
 spec:
   config: '{
     "cniVersion" : "0.4.0",

@@ -2,7 +2,7 @@ apiVersion: v1
 kind: ServiceAccount
 metadata:
     name: ovnkube-node
-    namespace: ovn-kubernetes
+    namespace: {{ .Release.Namespace }}
 
 # When ovn_enable_ovnkube_identity is true, an ovnkube-node process will identify as a user in a system:ovn-nodes group,
 # not the ovnkube-node serviceAccount
@@ -23,10 +23,10 @@ subjects:
     {{- else }}
     - kind: ServiceAccount
       name: ovnkube-node
-      namespace: ovn-kubernetes
+      namespace: {{ .Release.Namespace }}
     - kind: ServiceAccount
       name: {{ .Values.dpuServiceAccountName }}
-      namespace: ovn-kubernetes
+      namespace: {{ .Values.dpuServiceAccountNamespace }}
     {{- end }}
 
 
@@ -46,17 +46,17 @@ roleRef:
 subjects:
     - kind: ServiceAccount
       name: ovnkube-node
-      namespace: ovn-kubernetes
+      namespace: {{ .Release.Namespace }}
     - kind: ServiceAccount
       name: {{ .Values.dpuServiceAccountName }}
-      namespace: ovn-kubernetes
+      namespace: {{ .Values.dpuServiceAccountNamespace }}
 
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
     name: ovnkube-node-configmaps
-    namespace: ovn-kubernetes
+    namespace: {{ .Release.Namespace }}
 roleRef:
     name: ovn-k8s-configmap
     kind: Role
@@ -69,7 +69,7 @@ subjects:
     {{- else }}
     - kind: ServiceAccount
       name: ovnkube-node
-      namespace: ovn-kubernetes
+      namespace: {{ .Release.Namespace }}
     {{- end }}
 
 # In IC ovnkube-node pod needs configmap access in ovn-k ns for topology version:
@@ -80,7 +80,7 @@ apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
     name: ovnkube-node-ic-configmaps-update
-    namespace: ovn-kubernetes
+    namespace: {{ .Release.Namespace }}
 roleRef:
     name: ovn-k8s-configmap-update
     kind: Role
@@ -93,7 +93,7 @@ subjects:
     {{- else }}
     - kind: ServiceAccount
       name: ovnkube-node
-      namespace: ovn-kubernetes
+      namespace: {{ .Release.Namespace }}
     {{- end }}
 {{- end }}
 
@@ -105,7 +105,7 @@ apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
     name: ovnkube-node-ep
-    namespace: ovn-kubernetes
+    namespace: {{ .Release.Namespace }}
 roleRef:
     name: ovnkube-node-ep
     kind: Role
@@ -113,7 +113,7 @@ roleRef:
 subjects:
     - kind: ServiceAccount
       name: ovnkube-node
-      namespace: ovn-kubernetes
+      namespace: {{ .Release.Namespace }}
 
 
 ---
@@ -224,7 +224,7 @@ apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
     name: ovnkube-node-ep
-    namespace: ovn-kubernetes
+    namespace: {{ .Release.Namespace }}
 rules:
     - apiGroups: [""]
       resources:

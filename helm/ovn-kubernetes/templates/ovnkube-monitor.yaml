@@ -10,7 +10,7 @@ metadata:
     {{- toYaml . | nindent 4 }}
     {{- end }}
   name: monitor-ovnkube-master
-  namespace: ovn-kubernetes
+  namespace: {{ .Release.Namespace }}
 spec:
   endpoints:
   - interval: 30s
@@ -20,7 +20,7 @@ spec:
   jobLabel: k8s-app
   namespaceSelector:
     matchNames:
-    - ovn-kubernetes
+    - {{ .Release.Namespace }}
   selector:
     matchLabels:
       k8s-app: ovnkube-master
@@ -31,7 +31,7 @@ metadata:
   labels:
     k8s-app: ovnkube-master
   name: ovnkube-master-prometheus-discovery
-  namespace: ovn-kubernetes
+  namespace: {{ .Release.Namespace }}
 spec:
   selector:
     name: ovnkube-master
@@ -54,7 +54,7 @@ metadata:
     {{- toYaml . | nindent 4 }}
     {{- end }}
   name: monitor-ovnkube-node
-  namespace: ovn-kubernetes
+  namespace: {{ .Release.Namespace }}
 spec:
   endpoints:
   - interval: 30s
@@ -72,7 +72,7 @@ spec:
   jobLabel: k8s-app
   namespaceSelector:
     matchNames:
-    - ovn-kubernetes
+    - {{ .Release.Namespace }}
   selector:
     matchLabels:
       k8s-app: ovnkube-node
@@ -83,7 +83,7 @@ metadata:
   labels:
     k8s-app: ovnkube-node
   name: ovnkube-node-prometheus-discovery
-  namespace: ovn-kubernetes
+  namespace: {{ .Release.Namespace }}
 spec:
   selector:
     name: ovnkube-node
@@ -114,7 +114,7 @@ metadata:
     {{- toYaml . | nindent 4 }}
     {{- end }}
   name: monitor-ovnkube-cluster-manager
-  namespace: ovn-kubernetes
+  namespace: {{ .Release.Namespace }}
 spec:
   endpoints:
   - interval: 30s
@@ -124,7 +124,7 @@ spec:
   jobLabel: k8s-app
   namespaceSelector:
     matchNames:
-    - ovn-kubernetes
+    - {{ .Release.Namespace }}
   selector:
     matchLabels:
       k8s-app: ovnkube-cluster-manager
@@ -135,7 +135,7 @@ metadata:
   labels:
     k8s-app: ovnkube-cluster-manager
   name: ovnkube-cluster-manager-prometheus-discovery
-  namespace: ovn-kubernetes
+  namespace: {{ .Release.Namespace }}
 spec:
   selector:
     name: ovnkube-cluster-manager

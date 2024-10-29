@@ -7,7 +7,7 @@ apiVersion: apps/v1
 metadata:
   name: ovs-node
   # namespace set up by install
-  namespace: ovn-kubernetes
+  namespace: {{ .Release.Namespace }}
   annotations:
     kubernetes.io/description: |
       This DaemonSet launches the ovs networking components for all nodes.
