@@ -1594,6 +1594,12 @@ ovnkube-controller() {
   fi
   echo "ovn_enable_dnsnameresolver_flag=${ovn_enable_dnsnameresolver_flag}"
 
+  ovn_stateless_netpol_enable_flag=
+  if [[ ${ovn_stateless_netpol_enable} == "true" ]]; then
+          ovn_stateless_netpol_enable_flag="--enable-stateless-netpol"
+  fi
+  echo "ovn_stateless_netpol_enable_flag: ${ovn_stateless_netpol_enable_flag}"
+
   echo "=============== ovnkube-controller ========== MASTER ONLY"
   /usr/bin/ovnkube --init-ovnkube-controller ${K8S_NODE} \
     ${anp_enabled_flag} \
@@ -1626,6 +1632,7 @@ ovnkube-controller() {
     ${ovn_v6_masquerade_subnet_opt} \
     ${ovn_enable_dnsnameresolver_flag} \
     ${nohostsubnet_label_option} \
+    ${ovn_stateless_netpol_enable_flag} \
     --cluster-subnets ${net_cidr} --k8s-service-cidr=${svc_cidr} \
     --gateway-mode=${ovn_gateway_mode} \
     --host-network-namespace ${ovn_host_network_namespace} \
@@ -2002,6 +2009,12 @@ ovnkube-controller-with-node() {
     fi
   fi
 
+  ovn_stateless_netpol_enable_flag=
+  if [[ ${ovn_stateless_netpol_enable} == "true" ]]; then
+          ovn_stateless_netpol_enable_flag="--enable-stateless-netpol"
+  fi
+  echo "ovn_stateless_netpol_enable_flag: ${ovn_stateless_netpol_enable_flag}"
+
   echo "=============== ovnkube-controller-with-node --init-ovnkube-controller-with-node=========="
   /usr/bin/ovnkube --init-ovnkube-controller ${K8S_NODE} --init-node ${K8S_NODE} \
     ${anp_enabled_flag} \
@@ -2051,6 +2064,7 @@ ovnkube-controller-with-node() {
     ${sflow_targets} \
     ${ssl_opts} \
     ${ovn_enable_dnsnameresolver_flag} \
+    ${ovn_stateless_netpol_enable_flag} \
     --cluster-subnets ${net_cidr} --k8s-service-cidr=${svc_cidr} \
     --export-ovs-metrics \
     --gateway-mode=${ovn_gateway_mode} ${ovn_gateway_opts} \

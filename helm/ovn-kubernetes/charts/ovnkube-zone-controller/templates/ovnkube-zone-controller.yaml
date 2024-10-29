@@ -335,6 +335,10 @@ spec:
           value: {{ default "" .Values.global.enableMulticast | quote }}
         - name: OVN_ACL_LOGGING_RATE_LIMIT
           value: {{ default 20 .Values.global.aclLoggingRateLimit | quote }}
+        - name: OVN_STATELESS_NETPOL_ENABLE
+          value: {{ hasKey .Values.global "enableStatelessNetworkPolicy" | ternary .Values.global.enableStatelessNetworkPolicy false | quote }}
+        - name: OVN_STATELESS_NETPOL_ENABLE
+          value: {{ hasKey .Values.global "enableStatelessNetworkPolicy" | ternary .Values.global.enableStatelessNetworkPolicy false | quote }}
         - name: OVN_ENABLE_INTERCONNECT
           value: {{ hasKey .Values.global "enableInterconnect" | ternary .Values.global.enableInterconnect false | quote }}
         - name: OVN_ENABLE_MULTI_EXTERNAL_GATEWAY

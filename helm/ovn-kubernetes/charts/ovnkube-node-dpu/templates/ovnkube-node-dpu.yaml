@@ -540,6 +540,8 @@ spec:
           value: {{ default "" .Values.global.emptyLbEvents | quote }}
         - name: OVN_ACL_LOGGING_RATE_LIMIT
           value: {{ default 20 .Values.global.aclLoggingRateLimit | quote }}
+        - name: OVN_STATELESS_NETPOL_ENABLE
+          value: {{ hasKey .Values.global "enableStatelessNetworkPolicy" | ternary .Values.global.enableStatelessNetworkPolicy false | quote }}
         - name: OVN_HOST_NETWORK_NAMESPACE
           valueFrom:
             configMapKeyRef:
