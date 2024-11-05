@@ -138,9 +138,9 @@ global:
   libovsdbClientLogFile: ""
   image:
     # -- Image repository for ovn-kubernetes components
-    repository: ghcr.io/ovn-org/ovn-kubernetes/ovn-kube-ubuntu
+    repository: ghcr.io/ovn-kubernetes/ovn-kubernetes/ovn-kube-ubuntu
     # -- Specify image tag to run
-    tag: master
+    tag: release-1.0
     # -- Image pull policy
     pullPolicy: IfNotPresent
 
