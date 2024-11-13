@@ -841,7 +841,7 @@ func (nc *DefaultNodeNetworkController) Start(ctx context.Context) error {
 
 	// Initialize gateway
 	if config.OvnKubeNode.Mode == types.NodeModeDPUHost {
-		err = nc.initGatewayDPUHost(nodeAddr)
+		err = nc.initGatewayDPUHost(nodeAddr, nodeAnnotator)
 		if err != nil {
 			return err
 		}

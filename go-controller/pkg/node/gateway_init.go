@@ -15,6 +15,8 @@ import (
 	"github.com/ovn-org/ovn-kubernetes/go-controller/pkg/kube"
 	"github.com/ovn-org/ovn-kubernetes/go-controller/pkg/node/routemanager"
 	"github.com/ovn-org/ovn-kubernetes/go-controller/pkg/types"
+	kapi "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/util/sets"
 	util "github.com/ovn-org/ovn-kubernetes/go-controller/pkg/util"
 )
 
@@ -343,10 +345,19 @@ func (nc *DefaultNodeNetworkController) initGateway(subnets []*net.IPNet, nodeAn
 	// For DPU need to use the host IP addr which currently is assumed to be K8s Node cluster
 	// internal IP address.
 	if config.OvnKubeNode.Mode == types.NodeModeDPU {
-		ifAddrs, err = getDPUHostPrimaryIPAddresses(kubeNodeIP, ifAddrs)
+		var node *kapi.Node
+		if node, err = nc.Kube.GetNode(nc.name); err != nil {
+			return fmt.Errorf("error retrieving node %s: %v", nc.name, err)
+		}
+		nodeAddrStr, err := util.GetDpfNodeIfAddrAnnotation(node)//getDPUHostPrimaryIPAddresses(kubeNodeIP, ifAddrs)
 		if err != nil {
 			return err
 		}
+		nodeAddr, _, err := net.ParseCIDR(nodeAddrStr.IPv4)
+		if err != nil {
+			return fmt.Errorf("failed to parse node IP address. %v", nodeAddrStr)
+		}
+		ifAddrs, err = getDPUHostPrimaryIPAddresses(nodeAddr, ifAddrs)
 	}
 
 	if err := util.SetNodePrimaryIfAddrs(nodeAnnotator, ifAddrs); err != nil {
@@ -432,7 +443,7 @@ func interfaceForEXGW(intfName string) string {
 	return intfName
 }
 
-func (nc *DefaultNodeNetworkController) initGatewayDPUHost(kubeNodeIP net.IP) error {
+func (nc *DefaultNodeNetworkController) initGatewayDPUHost(kubeNodeIP net.IP, nodeAnnotator kube.Annotator) error {
 	// A DPU host gateway is complementary to the shared gateway running
 	// on the DPU embedded CPU. it performs some initializations and
 	// watch on services for iptable rule updates and run a loadBalancerHealth checker
@@ -461,6 +472,30 @@ func (nc *DefaultNodeNetworkController) initGatewayDPUHost(kubeNodeIP net.IP) er
 	ifAddrs, err := getNetworkInterfaceIPAddresses(gatewayIntf)
 	if err != nil {
 		return err
+	}
+
+	if err := util.SetDpfNodePrimaryIfAddrs(nodeAnnotator, ifAddrs); err != nil {
+		klog.Errorf("Unable to set primary IP net label on node, err: %v", err)
+	}
+
+	/*
+	nodeIntf, err := getInterfaceByIP(kubeNodeIP)
+	if err != nil {
+		return err
+	}
+	nodeIfAddrs, err := getNetworkInterfaceIPAddresses(nodeIntf)
+	if err != nil {
+		return err
+	}
+	*/
+	nodeIPNetv4, _ := util.MatchFirstIPNetFamily(false, ifAddrs)
+	/*
+	nodeGWNetv4, _ := util.MatchFirstIPNetFamily(false, nodeIfAddrs)
+	nodeAddrSet := sets.New[string](nodeIPNetv4.String(), nodeGWNetv4.String())
+	*/
+	nodeAddrSet := sets.New[string](nodeIPNetv4.String())
+	if err := util.SetNodeHostCIDRs(nodeAnnotator, nodeAddrSet); err != nil {
+		klog.Errorf("Unable to set host-cidrs on node, err: %v", err)
 	}
 
 	// Delete stale masquerade resources if there are any. This is to make sure that there

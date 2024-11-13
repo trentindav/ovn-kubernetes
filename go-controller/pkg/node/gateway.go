@@ -463,12 +463,13 @@ func (b *bridgeConfiguration) updateInterfaceIPAddresses(node *kapi.Node) ([]*ne
 	} else {
 		// For DPU, here we need to use the DPU host's IP address which is the tenant cluster's
 		// host internal IP address instead of the DPU's external bridge IP address.
-		var nodeAddrStr string
-		nodeAddrStr, err = util.GetNodePrimaryIP(node)
+		//var nodeAddrStr string
+		//nodeAddrStr, err = util.GetNodePrimaryIP(node)
+		nodeAddrStr, err := util.GetDpfNodeIfAddrAnnotation(node)
 		if err != nil {
 			return nil, err
 		}
-		nodeAddr := net.ParseIP(nodeAddrStr)
+		nodeAddr := net.ParseIP(nodeAddrStr.IPv4)
 		if nodeAddr == nil {
 			return nil, fmt.Errorf("failed to parse node IP address. %v", nodeAddrStr)
 		}

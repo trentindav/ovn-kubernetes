@@ -554,6 +554,36 @@ func SetNodePrimaryIfAddrs(nodeAnnotator kube.Annotator, ifAddrs []*net.IPNet) (
 	return nodeAnnotator.Set(OvnNodeIfAddr, primaryIfAddrAnnotation)
 }
 
+// SetNodePrimaryIfAddr sets the IPv4 / IPv6 values of the node's primary network interface
+func SetDpfNodePrimaryIfAddrs(nodeAnnotator kube.Annotator, ifAddrs []*net.IPNet) (err error) {
+        nodeIPNetv4, _ := MatchFirstIPNetFamily(false, ifAddrs)
+        nodeIPNetv6, _ := MatchFirstIPNetFamily(true, ifAddrs)
+
+        primaryIfAddrAnnotation := primaryIfAddrAnnotation{}
+        if nodeIPNetv4 != nil {
+                primaryIfAddrAnnotation.IPv4 = nodeIPNetv4.String()
+        }
+        if nodeIPNetv6 != nil {
+                primaryIfAddrAnnotation.IPv6 = nodeIPNetv6.String()
+        }
+        return nodeAnnotator.Set("k8s.ovn.org/node-primary-ifaddr-dpf", primaryIfAddrAnnotation)
+}
+
+func GetDpfNodeIfAddrAnnotation(node *kapi.Node) (*primaryIfAddrAnnotation, error) {
+	nodeIfAddrAnnotation, ok := node.Annotations["k8s.ovn.org/node-primary-ifaddr-dpf"]
+	if !ok {
+		return nil, newAnnotationNotSetError("%s annotation not found for node %q", "k8s.ovn.org/node-primary-ifaddr-dpf", node.Name)
+	}
+	nodeIfAddr := &primaryIfAddrAnnotation{}
+	if err := json.Unmarshal([]byte(nodeIfAddrAnnotation), nodeIfAddr); err != nil {
+		return nil, fmt.Errorf("failed to unmarshal annotation: %s for node %q, err: %v", "k8s.ovn.org/node-primary-ifaddr-dpf", node.Name, err)
+	}
+	if nodeIfAddr.IPv4 == "" && nodeIfAddr.IPv6 == "" {
+		return nil, fmt.Errorf("node: %q does not have any IP information set", node.Name)
+	}
+	return nodeIfAddr, nil
+}
+
 // createPrimaryIfAddrAnnotation marshals the IPv4 / IPv6 values in the
 // primaryIfAddrAnnotation format and stores it in the nodeAnnotation
 // map with the provided 'annotationName' as key
