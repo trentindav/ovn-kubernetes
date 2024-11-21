@@ -478,7 +478,6 @@ func (nc *DefaultNodeNetworkController) initGatewayDPUHost(kubeNodeIP net.IP, no
 		klog.Errorf("Unable to set primary IP net label on node, err: %v", err)
 	}
 
-	/*
 	nodeIntf, err := getInterfaceByIP(kubeNodeIP)
 	if err != nil {
 		return err
@@ -487,13 +486,9 @@ func (nc *DefaultNodeNetworkController) initGatewayDPUHost(kubeNodeIP net.IP, no
 	if err != nil {
 		return err
 	}
-	*/
 	nodeIPNetv4, _ := util.MatchFirstIPNetFamily(false, ifAddrs)
-	/*
 	nodeGWNetv4, _ := util.MatchFirstIPNetFamily(false, nodeIfAddrs)
 	nodeAddrSet := sets.New[string](nodeIPNetv4.String(), nodeGWNetv4.String())
-	*/
-	nodeAddrSet := sets.New[string](nodeIPNetv4.String())
 	if err := util.SetNodeHostCIDRs(nodeAnnotator, nodeAddrSet); err != nil {
 		klog.Errorf("Unable to set host-cidrs on node, err: %v", err)
 	}
