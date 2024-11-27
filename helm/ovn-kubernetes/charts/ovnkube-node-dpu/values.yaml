@@ -10,3 +10,4 @@ ipamPool: ""
 ipamPoolType: ""
 ipamVTEPIPIndex: nil
 ipamPFIPIndex: nil
+externalDHCP: false
