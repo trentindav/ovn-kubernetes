@@ -219,9 +219,23 @@ func (c *openflowManager) updateBridgeFlowCache(subnets []*net.IPNet, extraIPs [
 	}
 	dftFlows = append(dftFlows, dftCommonFlows...)
 
+	checkCmd := []string{
+		"get",
+		"Open_vSwitch",
+		".",
+		"external_ids:ovn-encap-ip",
+	}
+	encapIP, _, err := util.RunOVSVsctl(checkCmd...)
+	if err != nil {
+		return err
+	} else {
+		encapIP = strings.TrimSuffix(encapIP, "\n")
+	}
+
 	c.updateFlowCacheEntry("NORMAL", []string{
-               fmt.Sprintf("table=0,priority=0,actions=%s\n", util.NormalAction),
-               fmt.Sprintf("table=0,priority=999,udp,tp_dst=67,actions=%s\n", util.NormalAction),
+		fmt.Sprintf("table=0,priority=0,actions=%s\n", util.NormalAction),
+		fmt.Sprintf("table=0,priority=999,udp,tp_dst=67,actions=%s\n", util.NormalAction),
+		fmt.Sprintf("table=0,priority=999,ip,nw_dst=%s,actions=%s\n", encapIP, util.NormalAction),
 	})
 	c.updateFlowCacheEntry("DEFAULT", dftFlows)
 
