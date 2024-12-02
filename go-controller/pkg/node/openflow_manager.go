@@ -232,11 +232,17 @@ func (c *openflowManager) updateBridgeFlowCache(subnets []*net.IPNet, extraIPs [
 		encapIP = strings.TrimSuffix(encapIP, "\n")
 	}
 
-	c.updateFlowCacheEntry("NORMAL", []string{
-		fmt.Sprintf("table=0,priority=0,actions=%s\n", util.NormalAction),
-		fmt.Sprintf("table=0,priority=999,udp,tp_dst=67,actions=%s\n", util.NormalAction),
-		fmt.Sprintf("table=0,priority=999,ip,nw_dst=%s,actions=%s\n", encapIP, util.NormalAction),
-	})
+	if config.OvnKubeNode.Mode == types.NodeModeDPU {
+		c.updateFlowCacheEntry("NORMAL", []string{
+			fmt.Sprintf("table=0,priority=0,actions=%s\n", util.NormalAction),
+			fmt.Sprintf("table=0,priority=999,udp,tp_dst=67,actions=%s\n", util.NormalAction),
+			fmt.Sprintf("table=0,priority=999,ip,nw_dst=%s,actions=%s\n", encapIP, util.NormalAction),
+		})
+	} else {
+		c.updateFlowCacheEntry("NORMAL", []string{
+			fmt.Sprintf("table=0,priority=0,actions=%s\n", util.NormalAction),
+		})
+	}
 	c.updateFlowCacheEntry("DEFAULT", dftFlows)
 
 	// we consume ex gw bridge flows only if that is enabled
