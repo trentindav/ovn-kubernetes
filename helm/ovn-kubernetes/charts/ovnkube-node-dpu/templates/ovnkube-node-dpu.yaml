@@ -166,6 +166,8 @@ spec:
         # this is what it's in use. The new env variable SYSTEMD_IN_CHROOT doesn't work.
         - name: SYSTEMD_IGNORE_CHROOT
           value: "1"
+        - name: GATEWAY_DISCOVERY_NETWORK
+          value: {{ default "" .Values.gatewayDiscoveryNetwork | quote }}
         {{- else }}
         - name: VTEP_CIDR
           value: {{ default "" .Values.vtepCIDR | quote }}

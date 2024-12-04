@@ -11,3 +11,4 @@ ipamPoolType: ""
 ipamVTEPIPIndex: nil
 ipamPFIPIndex: nil
 externalDHCP: false
+gatewayDiscoveryNetwork: "169.254.99.100/32"
