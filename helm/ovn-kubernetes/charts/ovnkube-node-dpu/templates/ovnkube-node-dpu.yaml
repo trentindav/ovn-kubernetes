@@ -171,6 +171,11 @@ spec:
         {{- else }}
         - name: VTEP_CIDR
           value: {{ default "" .Values.vtepCIDR | quote }}
+        - name: OVN_MTU
+          valueFrom:
+            configMapKeyRef:
+              name: ovn-config
+              key: mtu
         {{- end }}
         - name: HOST_CIDR
           value: {{ default "" .Values.hostCIDR | quote }}
