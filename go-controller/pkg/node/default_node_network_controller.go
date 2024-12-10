@@ -598,13 +598,6 @@ func createNodeManagementPorts(node *kapi.Node, nodeLister listers.NodeLister, n
 		if err != nil {
 			return nil, nil, err
 		}
-		mgmtPortMac, err := util.GenerateRandMAC()
-		if err != nil {
-			return nil, nil, err
-		}
-		if err = util.UpdateNodeManagementPortMACAddressesWithRetry(node, nodeLister, kubeInterface, mgmtPortMac, types.DefaultNetworkName); err != nil {
-			return nil, nil, err
-		}
 	}
 	ports := NewManagementPorts(node.Name, subnets, netdevName, rep)
 
