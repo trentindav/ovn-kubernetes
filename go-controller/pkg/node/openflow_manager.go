@@ -236,7 +236,8 @@ func (c *openflowManager) updateBridgeFlowCache(subnets []*net.IPNet, extraIPs [
 		c.updateFlowCacheEntry("NORMAL", []string{
 			fmt.Sprintf("table=0,priority=0,actions=%s\n", util.NormalAction),
 			fmt.Sprintf("table=0,priority=999,udp,tp_dst=67,actions=%s\n", util.NormalAction),
-			fmt.Sprintf("table=0,priority=999,ip,nw_dst=%s,actions=%s\n", encapIP, util.NormalAction),
+			fmt.Sprintf("table=0,priority=999,udp,nw_dst=%s,tp_dst=6081,actions=LOCAL\n", encapIP),
+			fmt.Sprintf("table=0,priority=998,ip,nw_dst=%s,actions=%s\n", encapIP, util.NormalAction),
 		})
 	} else {
 		c.updateFlowCacheEntry("NORMAL", []string{
