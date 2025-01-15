@@ -971,6 +971,12 @@ func (h *defaultNetworkControllerEventHandler) UpdateResource(oldObj, newObj int
 				klog.Infof("Node %s in remote zone %s needs interconnect zone sync up. Zone cluster changed: %v",
 					newNode.Name, util.GetNodeZone(newNode), zoneClusterChanged)
 			}
+			if nodeChassisChanged(oldNode, newNode) {
+				if err := h.oc.zoneChassisHandler.DeleteRemoteZoneNode(oldNode); err != nil {
+					aggregatedErrors = append(aggregatedErrors, err)
+				}
+				syncZoneIC = true
+			}
 			if err := h.oc.addUpdateRemoteNodeEvent(newNode, syncZoneIC); err != nil {
 				aggregatedErrors = append(aggregatedErrors, err)
 			}
