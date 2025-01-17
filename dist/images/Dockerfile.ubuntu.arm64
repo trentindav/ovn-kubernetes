@@ -17,7 +17,9 @@ RUN apt-get update && apt-get install -y iproute2 curl software-properties-commo
 RUN curl -s https://packages.cloud.google.com/apt/doc/apt-key.gpg | apt-key add -
 
 # Install OVS and OVN packages.
-RUN apt-get update && apt-get install -y openvswitch-switch openvswitch-common ovn-central ovn-common ovn-host
+RUN apt-get update && apt-get install -y openvswitch-switch openvswitch-common ovn-central ovn-common ovn-host git autoconf libtool make build-essential
+
+RUN git clone https://github.com/aserdean/ovn -b branch-24.03 && cd ovn && git submodule update --init && cd ovs && ./boot.sh && ./configure --prefix=/usr --localstatedir=/var --sysconfdir=/etc && make -j && cd .. &&./boot.sh && ./configure --prefix=/usr --localstatedir=/var --sysconfdir=/etc && make -j && make install
 
 RUN curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/arm64/kubectl" \
     && install -o root -g root -m 0755 kubectl /usr/local/bin/kubectl
