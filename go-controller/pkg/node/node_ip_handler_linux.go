@@ -50,12 +50,12 @@ func newAddressManager(nodeName string, k kube.Interface, config *managementPort
 // newAddressManagerInternal creates a new address manager; this function is
 // only expose for testcases to disable netlink subscription to ensure
 // reproducibility of unit tests.
-func newAddressManagerInternal(nodeName string, k kube.Interface, config *managementPortConfig, watchFactory factory.NodeWatchFactory, gwBridge *bridgeConfiguration, useNetlink bool) *addressManager {
+func newAddressManagerInternal(nodeName string, k kube.Interface, mgmtConfig *managementPortConfig, watchFactory factory.NodeWatchFactory, gwBridge *bridgeConfiguration, useNetlink bool) *addressManager {
 	mgr := &addressManager{
 		nodeName:       nodeName,
 		watchFactory:   watchFactory,
 		cidrs:          sets.New[string](),
-		mgmtPortConfig: config,
+		mgmtPortConfig: mgmtConfig,
 		gatewayBridge:  gwBridge,
 		OnChanged:      func() {},
 		useNetlink:     useNetlink,
