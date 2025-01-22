@@ -82,8 +82,8 @@ jobs:
             exit 0
         fi
 
-        if docker pull ghcr.io/ovn-org/ovn-kubernetes/ovn-kube-fedora:release-1.0; then
-            docker tag ghcr.io/ovn-org/ovn-kubernetes/ovn-kube-fedora:release-1.0 ovn-daemonset-fedora:dev
+        if docker pull ghcr.io/ovn-kubernetes/ovn-kubernetes/ovn-kube-fedora:release-1.0; then
+            docker tag ghcr.io/ovn-kubernetes/ovn-kubernetes/ovn-kube-fedora:release-1.0 ovn-daemonset-fedora:dev
 
             echo "RELEASE_1_0_IMAGE_RESTORED=true" >> "$GITHUB_OUTPUT"
             exit 0
@@ -218,6 +218,7 @@ jobs:
         go get github.com/modocache/gover
         PATH=$PATH:$(go env GOPATH)/bin
 
+        # Note: release-1.0 golang codebase is based off of ovn-org.
         mkdir -p $(go env GOPATH)/src/github.com/ovn-org
         ln -sf $(pwd) $(go env GOPATH)/src/github.com/ovn-org/ovn-kubernetes
 
