@@ -50,19 +50,46 @@ func newAddressManager(nodeName string, k kube.Interface, config *managementPort
 // newAddressManagerInternal creates a new address manager; this function is
 // only expose for testcases to disable netlink subscription to ensure
 // reproducibility of unit tests.
-func newAddressManagerInternal(nodeName string, k kube.Interface, config *managementPortConfig, watchFactory factory.NodeWatchFactory, gwBridge *bridgeConfiguration, useNetlink bool) *addressManager {
+func newAddressManagerInternal(nodeName string, k kube.Interface, mgmtConfig *managementPortConfig, watchFactory factory.NodeWatchFactory, gwBridge *bridgeConfiguration, useNetlink bool) *addressManager {
 	mgr := &addressManager{
 		nodeName:       nodeName,
 		watchFactory:   watchFactory,
 		cidrs:          sets.New[string](),
-		mgmtPortConfig: config,
+		mgmtPortConfig: mgmtConfig,
 		gatewayBridge:  gwBridge,
 		OnChanged:      func() {},
 		useNetlink:     useNetlink,
 		syncPeriod:     30 * time.Second,
 	}
 	mgr.nodeAnnotator = kube.NewNodeAnnotator(k, nodeName)
-	mgr.sync()
+	if config.OvnKubeNode.Mode == types.NodeModeDPU {
+		var ifAddrs []*net.IPNet
+
+		// update k8s.ovn.org/host-cidrs
+		node, err := watchFactory.GetNode(nodeName)
+		if err != nil {
+			klog.Errorf("Failed to get node %s: %v", nodeName, err)
+			return nil
+		}
+		if useNetlink {
+			// get updated interface IP addresses for the gateway bridge
+			ifAddrs, err = gwBridge.updateInterfaceIPAddresses(node)
+			if err != nil {
+				klog.Errorf("Failed to obtain interface IP addresses for node %s: %v", nodeName, err)
+				return nil
+			}
+		}
+		if err = mgr.updateHostCIDRs(node, ifAddrs); err != nil {
+			klog.Errorf("Failed to update host-cidrs annotations on node %s: %v", nodeName, err)
+			return nil
+		}
+		if err = mgr.nodeAnnotator.Run(); err != nil {
+			klog.Errorf("Failed to set host-cidrs annotations on node %s: %v", nodeName, err)
+			return nil
+		}
+	} else {
+		mgr.sync()
+	}
 
 	return mgr
 }
@@ -115,6 +142,10 @@ func (c *addressManager) ListAddresses() []net.IP {
 type subscribeFn func() (bool, chan netlink.AddrUpdate, error)
 
 func (c *addressManager) Run(stopChan <-chan struct{}, doneWg *sync.WaitGroup) {
+	if config.OvnKubeNode.Mode == types.NodeModeDPU {
+		return
+	}
+
 	c.addHandlerForPrimaryAddrChange()
 	doneWg.Add(1)
 	go func() {
@@ -407,6 +438,10 @@ func (c *addressManager) isValidNodeIP(addr net.IP) bool {
 }
 
 func (c *addressManager) sync() {
+	if config.OvnKubeNode.Mode == types.NodeModeDPU {
+		return
+	}
+
 	var addrs []netlink.Addr
 
 	if c.useNetlink {
