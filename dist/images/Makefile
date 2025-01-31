@@ -19,7 +19,7 @@ ifeq ($(ARCH),arm64)
 endif
 OVS_BRANCH ?= main
 OVN_BRANCH ?= main
-OCI_BIN ?= docker
+OCI_BIN ?= podman
 HARBOR=harbor.mellanox.com/cloud-orchestration-dev/aserdean
 
 
@@ -30,11 +30,11 @@ ifeq ($(ARCH),amd64)
 	${OCI_BIN} tag "ovn-kube-ubuntu$(IMAGE_ARCH):latest" \
               "ovn-kube-ubuntu:latest"
 endif
-	${OCI_BIN} tag "ovn-kube-ubuntu$(IMAGE_ARCH):latest" $(HARBOR)/ovn-daemonset-ubuntu$(IMAGE_ARCH):alin-dev-upstream
+	${OCI_BIN} tag "ovn-kube-ubuntu$(IMAGE_ARCH):latest" $(HARBOR)/ovn-daemonset-ubuntu$(IMAGE_ARCH):alin-dev-upstream-rfc2
 	# This is the default in the ovnkube*.yaml files
 	# ${OCI_BIN} login -u ovnkube docker.io/ovnkube
-	${OCI_BIN} push $(HARBOR)/ovn-daemonset-ubuntu$(IMAGE_ARCH):alin-dev-upstream
-	./daemonset.sh --image=$(HARBOR)/ovn-daemonset-ubuntu$(IMAGE_ARCH):alin-dev-upstream
+	${OCI_BIN} push $(HARBOR)/ovn-daemonset-ubuntu$(IMAGE_ARCH):alin-dev-upstream-rfc2
+	./daemonset.sh --image=$(HARBOR)/ovn-daemonset-ubuntu$(IMAGE_ARCH):alin-dev-upstream-rfc2
 
 fedora: bld
 	${OCI_BIN} build -t ovn-kube-fedora -f Dockerfile.fedora .
