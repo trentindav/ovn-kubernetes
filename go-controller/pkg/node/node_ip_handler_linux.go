@@ -255,7 +255,7 @@ func (c *addressManager) handleNodePrimaryAddrChange() {
 		klog.Errorf("Address Manager failed to check node primary address change: %v", err)
 		return
 	}
-	if nodePrimaryAddrChanged {
+	if nodePrimaryAddrChanged && config.Default.EncapIP == "" {
 		klog.Infof("Node primary address changed to %v. Updating OVN encap IP.", c.nodePrimaryAddr)
 		updateOVNEncapIPAndReconnect(c.nodePrimaryAddr)
 	}
@@ -519,6 +519,7 @@ func updateOVNEncapIPAndReconnect(newIP net.IP) {
 		}
 	}
 
+	config.Default.EffectiveEncapIP = newIP.String()
 	confCmd := []string{
 		"set",
 		"Open_vSwitch",
