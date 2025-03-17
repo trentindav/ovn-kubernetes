@@ -1,0 +1,48 @@
+# Metadata section
+
+name: ovn-kubernetes
+summary: OVN Kubernetes CNI
+description: Dockerfile to Rocks conversion for ovn-kubernetes
+version: "latest"
+license: Apache-2.0
+
+base: ubuntu@24.04
+build-base: ubuntu@24.04
+platforms:
+  amd64: # Make sure this value matches your computer's architecture
+
+# Parts section
+
+parts:
+  ovs-ovn-utils:
+    plugin: nil
+    stage-packages:
+      - iproute2
+      - curl
+      - software-properties-common
+      - util-linux
+      - nftables
+      - openvswitch-switch
+      - openvswitch-common
+      - ovn-central
+      - ovn-common
+      - ovn-host
+
+    override-prime: |
+      mkdir -p /var/run/openvswitch
+      mkdir -p /usr/libexec/cni/
+
+  ovn-kubernetes-usr:
+    plugin: dump
+    source: .
+    source-type: local
+    organize:
+      "rocks_usr/*": usr/bin/
+      "rocks_root/*": root/
+      "iptables-scripts/*": usr/sbin/
+      "ovn-k8s-cni-overlay": usr/libexec/cni/ovn-k8s-cni-overlay
+      "ovn_k8s.conf": etc/openvswitch/ovn_k8s.conf
+    stage:
+      - usr/
+      - root/
+      - etc/
