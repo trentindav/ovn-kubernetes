@@ -32,6 +32,22 @@ parts:
       - openvswitch-switch
       - openvswitch-common
 
+  kubectl:
+    plugin: nil
+    override-stage: |
+      set -eux
+      mkdir -p /root/stage/usr/local/bin
+      curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
+      install -o root -g root -m 0755 kubectl /root/stage/usr/local/bin/kubectl
+    stage:
+      - usr/local/bin/kubectl
+
+  # TODO: snap install failed, kubectl is not usable in a running container, investigate
+  # kubectl:
+  #   plugin: nil
+  #   stage-snaps:
+  #     - kubectl
+
   ovn-kubernetes-usr:
     plugin: dump
     source: .
