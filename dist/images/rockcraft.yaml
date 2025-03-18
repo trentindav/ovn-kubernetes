@@ -14,7 +14,7 @@ platforms:
 # Parts section
 
 parts:
-  ovs-ovn-utils:
+  ovn-utils:
     plugin: nil
     stage-packages:
       - iproute2
@@ -22,15 +22,15 @@ parts:
       - software-properties-common
       - util-linux
       - nftables
-      - openvswitch-switch
-      - openvswitch-common
       - ovn-central
       - ovn-common
       - ovn-host
 
-    override-prime: |
-      mkdir -p /var/run/openvswitch
-      mkdir -p /usr/libexec/cni/
+  ovs-utils:
+    plugin: nil
+    stage-packages:
+      - openvswitch-switch
+      - openvswitch-common
 
   ovn-kubernetes-usr:
     plugin: dump
@@ -43,6 +43,13 @@ parts:
       "ovn-k8s-cni-overlay": usr/libexec/cni/ovn-k8s-cni-overlay
       "ovn_k8s.conf": etc/openvswitch/ovn_k8s.conf
     stage:
-      - usr/
+      - usr/bin/ovnkube
+      - usr/bin/ovn-kube-util
+      - usr/bin/ovndbchecker
+      - usr/bin/hybrid-overlay-node
+      - usr/bin/ovnkube-identity
+      - usr/bin/ovnkube-observ
+      - usr/libexec/cni/ovn-k8s-cni-overlay
       - root/
-      - etc/
+      - etc/openvswitch/ovn_k8s.conf
+
