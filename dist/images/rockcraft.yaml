@@ -41,6 +41,20 @@ parts:
       install -o root -g root -m 0755 kubectl /root/stage/usr/local/bin/kubectl
     stage:
       - usr/local/bin/kubectl
+    
+  ovs-override:
+    plugin: nil
+    after:
+    - ovn-utils
+    - ovs-utils
+    override-stage: |
+      set -eux
+      ln -sf /usr/lib/openvswitch-switch/ovs-vswitchd /root/stage/usr/bin/ovs-vswitchd
+    override-prime: |
+      set -eux
+      mkdir -p var/run/openvswitch
+    stage:
+      - usr/bin/ovs-vswitchd
 
   # TODO: snap install failed, kubectl is not usable in a running container, investigate
   # kubectl:
