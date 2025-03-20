@@ -1,17 +1,12 @@
-# Instructions: build Go binaries and copy them to subfolders that help the organization of the final image
+# Instructions: Go compiled binaries are expected to be in the dist/images folder
 # use Rockcraft to generate the .rock and skopeo to load it into a local Docker daemon or a registry
 # make bld
-# mkdir -p rocks_usr rocks_root
-# cp hybrid-overlay-node ovndbchecker ovnkube ovnkube-identity ovnkube-observ ovn-kube-util rocks_usr
-# cp git_info ovndb-raft-functions.sh ovnkube.sh rocks_root
 # rockcraft pack
-# sudo rockcraft.skopeo --insecure-policy copy oci-archive:ovn-kubernetes_latest_amd64.rock docker-daemon:ovn-kubernetes:$1
-
-# Metadata section
+# sudo rockcraft.skopeo --insecure-policy copy oci-archive:ovn-kubernetes_latest_amd64.rock docker-daemon:ovn-kubernetes:latest
 
 name: ovn-kubernetes
 summary: OVN Kubernetes CNI
-description: Dockerfile to Rocks conversion for ovn-kubernetes
+description: Rock image including all binaries required for any OVN-Kubernetes container
 version: "latest"
 license: Apache-2.0
 
@@ -20,10 +15,8 @@ build-base: ubuntu@24.04
 platforms:
   amd64: # Make sure this value matches your computer's architecture
 
-# Parts section
-
 parts:
-  ovn-utils:
+  tools:
     plugin: nil
     stage-packages:
       - iproute2
@@ -31,78 +24,59 @@ parts:
       - software-properties-common
       - util-linux
       - nftables
+      - libmnl0
+
+  ovn:
+    plugin: nil
+    stage-packages:
       - ovn-central
       - ovn-common
       - ovn-host
 
-  # Temporary, just to highlight that this was not visible in Dockerfile.ubuntu
-  missing-utils:
-    plugin: nil
-    stage-packages:
-      - libmnl0
-
-  ovs-utils:
+  ovs:
     plugin: nil
     stage-packages:
       - openvswitch-switch
       - openvswitch-common
+    override-prime: |
+      ln -sf /usr/lib/openvswitch-switch/ovs-vswitchd usr/bin/ovs-vswitchd
 
   kubectl:
     plugin: nil
-    # TODO: use env var for craft path
-    override-stage: |
-      set -eux
-      mkdir -p /root/stage/usr/local/bin
-      curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
-      install -o root -g root -m 0755 kubectl /root/stage/usr/local/bin/kubectl
-    stage:
-      - usr/local/bin/kubectl
-  
-  # TODO: mkdir probably not necessary, use proper paths for ovs-vswitchd
-  ovs-override:
-    plugin: nil
-    after:
-    - ovn-utils
-    - ovs-utils
-    override-stage: |
-      set -eux
-      ln -sf /usr/lib/openvswitch-switch/ovs-vswitchd /root/stage/usr/bin/ovs-vswitchd
     override-prime: |
-      set -eux
-      mkdir -p var/run/openvswitch
-    stage:
-      - usr/bin/ovs-vswitchd
+      mkdir -p usr/local/bin
+      curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
+      install -o root -g root -m 0755 kubectl usr/local/bin/kubectl
 
-  # TODO: snap install failed, kubectl is not usable in a running container, investigate
-  # kubectl:
-  #   plugin: nil
-  #   stage-snaps:
-  #     - kubectl
-
-  # TODO: unroll all content of root/ in stage
-  ovn-kubernetes-usr:
-    plugin: dump
+  ovn-kubernetes-binaries:
+    plugin: nil
     source: .
     source-type: local
-    organize:
-      "rocks_usr/*": usr/bin/
-      "rocks_root/*": root/
-      "iptables-scripts/*": usr/sbin/
-      "ovn-k8s-cni-overlay": usr/libexec/cni/ovn-k8s-cni-overlay
-      "ovn_k8s.conf": etc/openvswitch/ovn_k8s.conf
-    stage:
-      - usr/bin/ovnkube
-      - usr/bin/ovn-kube-util
-      - usr/bin/ovndbchecker
-      - usr/bin/hybrid-overlay-node
-      - usr/bin/ovnkube-identity
-      - usr/bin/ovnkube-observ
-      - usr/libexec/cni/ovn-k8s-cni-overlay
-      - root/
-      - etc/openvswitch/ovn_k8s.conf
-      - usr/sbin/ip6tables
-      - usr/sbin/ip6tables-restore
-      - usr/sbin/ip6tables-save
-      - usr/sbin/iptables
-      - usr/sbin/iptables-restore
-      - usr/sbin/iptables-save
+    override-prime: |
+      mkdir -p usr/bin
+      mkdir -p usr/libexec/cni
+      mkdir -p root
+      mkdir -p etc/openvswitch
+      mkdir -p usr/sbin
+      
+      cp ${CRAFT_PROJECT_DIR}/ovnkube usr/bin/ovnkube
+      cp ${CRAFT_PROJECT_DIR}/ovn-kube-util usr/bin/ovn-kube-util
+      cp ${CRAFT_PROJECT_DIR}/ovndbchecker usr/bin/ovndbchecker
+      cp ${CRAFT_PROJECT_DIR}/hybrid-overlay-node usr/bin/hybrid-overlay-node
+      cp ${CRAFT_PROJECT_DIR}/ovnkube-identity usr/bin/ovnkube-identity
+
+      cp ${CRAFT_PROJECT_DIR}/ovn-k8s-cni-overlay usr/libexec/cni/ovn-k8s-cni-overlay
+
+      cp ${CRAFT_PROJECT_DIR}/ovnkube.sh root/ovnkube.sh
+      cp ${CRAFT_PROJECT_DIR}/ovndb-raft-functions.sh root/ovndb-raft-functions.sh
+      cp ${CRAFT_PROJECT_DIR}/git_info root/git_info
+
+      cp ${CRAFT_PROJECT_DIR}/ovn_k8s.conf etc/openvswitch/ovn_k8s.conf
+
+      cp ${CRAFT_PROJECT_DIR}/iptables-scripts/ip6tables usr/sbin/ip6tables
+      cp ${CRAFT_PROJECT_DIR}/iptables-scripts/ip6tables-restore usr/sbin/ip6tables-restore
+      cp ${CRAFT_PROJECT_DIR}/iptables-scripts/ip6tables-save usr/sbin/ip6tables-save
+      cp ${CRAFT_PROJECT_DIR}/iptables-scripts/iptables usr/sbin/iptables
+      cp ${CRAFT_PROJECT_DIR}/iptables-scripts/iptables-restore usr/sbin/iptables-restore
+      cp ${CRAFT_PROJECT_DIR}/iptables-scripts/iptables-save usr/sbin/iptables-save
+

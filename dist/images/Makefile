@@ -33,6 +33,11 @@ endif
 	# ${OCI_BIN} push docker.io/ovnkube/ovn-daemonset-ubuntu:latest
 	./daemonset.sh --image=docker.io/ovnkube/ovn-daemonset-ubuntu:latest
 
+ubuntu-rock: bld
+	rockcraft clean
+	rockcraft pack
+	rockcraft.skopeo --insecure-policy copy oci-archive:ovn-kubernetes_latest_amd64.rock docker-daemon:ovn-kubernetes-rock:latest
+
 fedora: bld
 	${OCI_BIN} build -t ovn-kube-fedora -f Dockerfile.fedora .
 	# ${OCI_BIN} login -u ovnkube docker.io/ovnkube
