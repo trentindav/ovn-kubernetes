@@ -1,0 +1,108 @@
+# Instructions: build Go binaries and copy them to subfolders that help the organization of the final image
+# use Rockcraft to generate the .rock and skopeo to load it into a local Docker daemon or a registry
+# make bld
+# mkdir -p rocks_usr rocks_root
+# cp hybrid-overlay-node ovndbchecker ovnkube ovnkube-identity ovnkube-observ ovn-kube-util rocks_usr
+# cp git_info ovndb-raft-functions.sh ovnkube.sh rocks_root
+# rockcraft pack
+# sudo rockcraft.skopeo --insecure-policy copy oci-archive:ovn-kubernetes_latest_amd64.rock docker-daemon:ovn-kubernetes:$1
+
+# Metadata section
+
+name: ovn-kubernetes
+summary: OVN Kubernetes CNI
+description: Dockerfile to Rocks conversion for ovn-kubernetes
+version: "latest"
+license: Apache-2.0
+
+base: ubuntu@24.04
+build-base: ubuntu@24.04
+platforms:
+  amd64: # Make sure this value matches your computer's architecture
+
+# Parts section
+
+parts:
+  ovn-utils:
+    plugin: nil
+    stage-packages:
+      - iproute2
+      - curl
+      - software-properties-common
+      - util-linux
+      - nftables
+      - ovn-central
+      - ovn-common
+      - ovn-host
+
+  # Temporary, just to highlight that this was not visible in Dockerfile.ubuntu
+  missing-utils:
+    plugin: nil
+    stage-packages:
+      - libmnl0
+
+  ovs-utils:
+    plugin: nil
+    stage-packages:
+      - openvswitch-switch
+      - openvswitch-common
+
+  kubectl:
+    plugin: nil
+    # TODO: use env var for craft path
+    override-stage: |
+      set -eux
+      mkdir -p /root/stage/usr/local/bin
+      curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
+      install -o root -g root -m 0755 kubectl /root/stage/usr/local/bin/kubectl
+    stage:
+      - usr/local/bin/kubectl
+  
+  # TODO: mkdir probably not necessary, use proper paths for ovs-vswitchd
+  ovs-override:
+    plugin: nil
+    after:
+    - ovn-utils
+    - ovs-utils
+    override-stage: |
+      set -eux
+      ln -sf /usr/lib/openvswitch-switch/ovs-vswitchd /root/stage/usr/bin/ovs-vswitchd
+    override-prime: |
+      set -eux
+      mkdir -p var/run/openvswitch
+    stage:
+      - usr/bin/ovs-vswitchd
+
+  # TODO: snap install failed, kubectl is not usable in a running container, investigate
+  # kubectl:
+  #   plugin: nil
+  #   stage-snaps:
+  #     - kubectl
+
+  # TODO: unroll all content of root/ in stage
+  ovn-kubernetes-usr:
+    plugin: dump
+    source: .
+    source-type: local
+    organize:
+      "rocks_usr/*": usr/bin/
+      "rocks_root/*": root/
+      "iptables-scripts/*": usr/sbin/
+      "ovn-k8s-cni-overlay": usr/libexec/cni/ovn-k8s-cni-overlay
+      "ovn_k8s.conf": etc/openvswitch/ovn_k8s.conf
+    stage:
+      - usr/bin/ovnkube
+      - usr/bin/ovn-kube-util
+      - usr/bin/ovndbchecker
+      - usr/bin/hybrid-overlay-node
+      - usr/bin/ovnkube-identity
+      - usr/bin/ovnkube-observ
+      - usr/libexec/cni/ovn-k8s-cni-overlay
+      - root/
+      - etc/openvswitch/ovn_k8s.conf
+      - usr/sbin/ip6tables
+      - usr/sbin/ip6tables-restore
+      - usr/sbin/ip6tables-save
+      - usr/sbin/iptables
+      - usr/sbin/iptables-restore
+      - usr/sbin/iptables-save
